@@ -1,6 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import { useState } from 'react';
+import './App.scss';
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -8,8 +9,15 @@ function App() {
 
   const handleAddTask = () => {
     if (input.trim() === '') return;
-    setTasks([...tasks, input]);
+    const newTask = { text: input, completed: false };
+    setTasks([...tasks, newTask]);
     setInput('');
+  };
+
+  const handleToggleTask = (index) => {
+    const newTasks = [...tasks];
+    newTasks[index].completed = !newTasks[index].completed;
+    setTasks(newTasks);
   };
 
   const handleDeleteTask = (index) => {
@@ -18,22 +26,29 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="todo-container">
       <h1>My To-Do List</h1>
 
-      <input 
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="Enter a task"
-      />
-      <button onClick={handleAddTask}>Add</button>
+      <div className="input-group">
+        <input 
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Enter a task"
+        />
+        <button onClick={handleAddTask}>Add</button>
+      </div>
 
-      <ul>
+      <ul className="task-list">
         {tasks.map((task, index) => (
-          <li key={index}>
-            {task}
-            <button onClick={() => handleDeleteTask(index)} style={{ marginLeft: '10px' }}>
-              Delete
+          <li key={index} className={task.completed ? 'completed' : ''}>
+            <input 
+              type="checkbox" 
+              checked={task.completed} 
+              onChange={() => handleToggleTask(index)}
+            />
+            <span>{task.text}</span>
+            <button onClick={() => handleDeleteTask(index)} className="delete-btn">
+              ✖
             </button>
           </li>
         ))}
