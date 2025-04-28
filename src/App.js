@@ -1,11 +1,29 @@
 import logo from './logo.svg';
 import './App.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import './App.scss';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState('');
+
+  // Load tasks dari LocalStorage saat pertama kali render
+  useEffect(() => {
+    const saved = localStorage.getItem('tasks');
+    if (saved) {
+      try {
+        setTasks(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse tasks from LocalStorage:', e);
+      }
+    }
+  }, []);
+
+  // Simpan tasks ke LocalStorage setiap kali ada perubahan
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }, [tasks]);
 
   const handleAddTask = () => {
     if (input.trim() === '') return;
@@ -39,19 +57,28 @@ function App() {
       </div>
 
       <ul className="task-list">
-        {tasks.map((task, index) => (
-          <li key={index} className={task.completed ? 'completed' : ''}>
-            <input 
-              type="checkbox" 
-              checked={task.completed} 
-              onChange={() => handleToggleTask(index)}
-            />
-            <span>{task.text}</span>
-            <button onClick={() => handleDeleteTask(index)} className="delete-btn">
-              ✖
-            </button>
-          </li>
-        ))}
+        <AnimatePresence>
+          {tasks.map((task, index) => (
+            <motion.li
+              key={index}
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -50 }}
+              transition={{ duration: 0.3 }}
+              className={task.completed ? 'completed' : ''}
+            >
+              <input 
+                type="checkbox" 
+                checked={task.completed} 
+                onChange={() => handleToggleTask(index)}
+              />
+              <span>{task.text}</span>
+              <button onClick={() => handleDeleteTask(index)} className="delete-btn">
+                ✖
+              </button>
+            </motion.li>
+          ))}
+        </AnimatePresence>
       </ul>
     </div>
   );

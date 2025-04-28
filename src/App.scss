@@ -54,6 +54,7 @@
       padding: 10px 15px;
       border-radius: 6px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
 
       input[type="checkbox"] {
         margin-right: 10px;
@@ -80,6 +81,34 @@
         &:hover {
           color: #c0392b;
         }
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 600px) {
+    .input-group {
+      flex-direction: column;
+
+      input {
+        width: 100%;
+        border-radius: 6px;
+        margin-bottom: 10px;
+      }
+
+      button {
+        width: 100%;
+        border-radius: 6px;
+      }
+    }
+
+    .task-list li {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .delete-btn {
+        align-self: flex-end;
+        margin-top: 5px;
       }
     }
   }
