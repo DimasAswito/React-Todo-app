@@ -3,31 +3,35 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './App.scss';
+import 'bootstrap/dist/css/bootstrap.min.css'; // Ini pastikan ada!
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState('');
+  const [filter, setFilter] = useState('all');
+  const [darkMode, setDarkMode] = useState(false);
 
-  // Load tasks dari LocalStorage saat pertama kali render
   useEffect(() => {
-    const saved = localStorage.getItem('tasks');
-    if (saved) {
-      try {
-        setTasks(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse tasks from LocalStorage:', e);
-      }
-    }
+    const savedTasks = JSON.parse(localStorage.getItem('tasks'));
+    if (savedTasks) setTasks(savedTasks);
   }, []);
 
-  // Simpan tasks ke LocalStorage setiap kali ada perubahan
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
+  
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('bg-dark', 'text-light');
+    } else {
+      document.body.classList.remove('bg-dark', 'text-light');
+    }
+  }, [darkMode]);
+  
 
   const handleAddTask = () => {
     if (input.trim() === '') return;
-    const newTask = { text: input, completed: false };
+    const newTask = { text: input, completed: false  };
     setTasks([...tasks, newTask]);
     setInput('');
   };
@@ -43,43 +47,112 @@ function App() {
     setTasks(newTasks);
   };
 
-  return (
-    <div className="todo-container">
-      <h1>My To-Do List</h1>
+  const filteredTasks = tasks.filter(task => {
+    if (filter === 'completed') return task.completed;
+    if (filter === 'uncompleted') return !task.completed;
+    return true;
+  });
 
-      <div className="input-group">
-        <input 
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter a task"
-        />
-        <button onClick={handleAddTask}>Add</button>
+  return (
+    <div className="container my-5">
+      <div className="text-center mb-4">
+        <h1 className="mb-3">My To-Do List</h1>
+        <button 
+          onClick={() => setDarkMode(!darkMode)} 
+          className="btn btn-secondary"
+        >
+          {darkMode ? 'Light Mode' : 'Dark Mode'}
+        </button>
       </div>
 
-      <ul className="task-list">
-        <AnimatePresence>
-          {tasks.map((task, index) => (
-            <motion.li
-              key={index}
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -50 }}
-              transition={{ duration: 0.3 }}
-              className={task.completed ? 'completed' : ''}
-            >
-              <input 
-                type="checkbox" 
-                checked={task.completed} 
-                onChange={() => handleToggleTask(index)}
-              />
-              <span>{task.text}</span>
-              <button onClick={() => handleDeleteTask(index)} className="delete-btn">
-                ✖
-              </button>
-            </motion.li>
-          ))}
-        </AnimatePresence>
-      </ul>
+      <div className="card p-4 shadow-sm">
+      <div className="row g-2 mb-3">
+        <div className="col-9">
+          <input 
+            type="text"
+            className="form-control"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Enter a task"
+          />
+        </div>
+        <div className="col-3 d-grid">
+          <button 
+            onClick={handleAddTask} 
+            className="btn btn-success"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+
+        <div className="btn-group mb-4" role="group">
+          <button 
+            className={`btn btn-outline-primary ${filter === 'all' ? 'active' : ''}`} 
+            onClick={() => setFilter('all')}
+          >
+            All
+          </button>
+          <button 
+            className={`btn btn-outline-primary ${filter === 'completed' ? 'active' : ''}`} 
+            onClick={() => setFilter('completed')}
+          >
+            Completed
+          </button>
+          <button 
+            className={`btn btn-outline-primary ${filter === 'uncompleted' ? 'active' : ''}`} 
+            onClick={() => setFilter('uncompleted')}
+          >
+            Uncompleted
+          </button>
+        </div>
+
+        <ul className="list-group">
+          <AnimatePresence>
+            {filteredTasks.map((task, index) => (
+              <motion.li
+                key={index}
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.3 }}
+                className={`list-group-item d-flex justify-content-between align-items-center ${task.completed ? 'list-group-item-success' : ''}`}
+              >
+                <div className="form-check">
+                  <input 
+                    type="checkbox"
+                    className="form-check-input"
+                    checked={task.completed}
+                    onChange={() => handleToggleTask(index)}
+                    id={`task-${index}`}
+                  />
+                  <label 
+                    className={`form-check-label ms-2 ${task.completed ? 'text-decoration-line-through' : ''}`} 
+                    htmlFor={`task-${index}`}
+                  >
+                    {task.text}
+                    {task.deadline && (
+                      <div>
+                        <small className="text-muted">
+                          Deadline: {new Date(task.deadline).toLocaleString()}
+                        </small>
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                <button 
+                  onClick={() => handleDeleteTask(index)} 
+                  className="btn btn-danger btn-sm"
+                >
+                  ✖
+                </button>
+              </motion.li>
+            ))}
+          </AnimatePresence>
+        </ul>
+      </div>
     </div>
   );
 }
